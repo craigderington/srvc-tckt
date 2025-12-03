@@ -203,7 +203,7 @@ NEW → ASSIGNED → IN_PROGRESS → RESOLVED → CLOSED → ARCHIVED
 
 3. **Access the application**
    ```
-   URL: http://localhost:8080
+   URL: http://localhost:8888
    ```
 
 4. **Login with default credentials**
@@ -280,9 +280,9 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
     ports:
-      - "8080:8080"
+      - "8888:8888"
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "--spider", "http://localhost:8888/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -377,7 +377,7 @@ kubectl exec -n srvc-tckt <pod-name> -it -- /bin/sh
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `SPRING_PROFILES_ACTIVE` | Active Spring profile | `local` | No |
-| `SERVER_PORT` | Application port | `8080` | No |
+| `SERVER_PORT` | Application port | `8888` | No |
 | `DB_HOST` | Database hostname | `localhost` | Yes (prod) |
 | `DB_PORT` | Database port | `5432` | Yes (prod) |
 | `DB_NAME` | Database name | `srvc_tckt_db` | Yes (prod) |
@@ -561,7 +561,7 @@ View coverage report: `target/site/jacoco/index.html`
 
 Scrape metrics from:
 ```
-http://localhost:8080/actuator/prometheus
+http://localhost:8888/actuator/prometheus
 ```
 
 ### Grafana Dashboard
@@ -592,7 +592,7 @@ java -version  # Should be 21 or higher
 
 **Check port availability:**
 ```bash
-lsof -i :8080  # Port should be free
+lsof -i :8888  # Port should be free
 ```
 
 ### Database connection issues

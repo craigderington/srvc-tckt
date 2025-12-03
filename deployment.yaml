@@ -25,7 +25,7 @@ data:
 
   # Application configuration
   SPRING_PROFILES_ACTIVE: "prod"
-  SERVER_PORT: "8080"
+  SERVER_PORT: "8888"
 
   # Email configuration (optional - configure if using real mail server)
   MAIL_HOST: "localhost"
@@ -186,7 +186,7 @@ spec:
         version: v1
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
+        prometheus.io/port: "8888"
         prometheus.io/path: "/actuator/prometheus"
     spec:
       # Pod anti-affinity to spread pods across nodes
@@ -208,7 +208,7 @@ spec:
         image: srvc-tckt:latest
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 8080
+        - containerPort: 8888
           name: http
           protocol: TCP
 
@@ -261,7 +261,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /actuator/health/liveness
-            port: 8080
+            port: 8888
             scheme: HTTP
           initialDelaySeconds: 90
           periodSeconds: 10
@@ -272,7 +272,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /actuator/health/readiness
-            port: 8080
+            port: 8888
             scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 5
@@ -284,7 +284,7 @@ spec:
         startupProbe:
           httpGet:
             path: /actuator/health
-            port: 8080
+            port: 8888
             scheme: HTTP
           initialDelaySeconds: 0
           periodSeconds: 10
@@ -316,7 +316,7 @@ spec:
   type: LoadBalancer  # k3s will use Traefik as LoadBalancer
   ports:
   - port: 80
-    targetPort: 8080
+    targetPort: 8888
     protocol: TCP
     name: http
   selector:

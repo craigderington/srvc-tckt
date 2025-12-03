@@ -69,10 +69,10 @@ kubectl get svc srvc-tckt-service -n srvc-tckt
 ### Method 2: Port Forward (Development)
 
 ```bash
-kubectl port-forward -n srvc-tckt svc/srvc-tckt-service 8080:80
+kubectl port-forward -n srvc-tckt svc/srvc-tckt-service 8888:80
 ```
 
-Then access at: http://localhost:8080
+Then access at: http://localhost:8888
 
 ### Method 3: Ingress (Production)
 
@@ -119,10 +119,10 @@ watch -n 2 kubectl get pods -n srvc-tckt -o wide
 
 ```bash
 # Check health endpoint
-kubectl exec -n srvc-tckt <pod-name> -- wget -qO- http://localhost:8080/actuator/health
+kubectl exec -n srvc-tckt <pod-name> -- wget -qO- http://localhost:8888/actuator/health
 
 # Check metrics
-kubectl exec -n srvc-tckt <pod-name> -- wget -qO- http://localhost:8080/actuator/metrics
+kubectl exec -n srvc-tckt <pod-name> -- wget -qO- http://localhost:8888/actuator/metrics
 ```
 
 ## Scaling
