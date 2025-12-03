@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Ticket - Service Ticket System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a th:href="@{/}">
+                    <span class="brand-icon">🎫</span>
+                    <span class="brand-text">Service Ticket</span>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a th:href="@{/}">Dashboard</a>
+                <a th:href="@{/tickets/queue}">Ticket Queue</a>
+                <a th:href="@{/tickets}">All Tickets</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="form-container">
+                <h1>Create New Ticket</h1>
+                <p class="subtitle">Submit a support request</p>
+
+                <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+                <form th:action="@{/tickets/new}" th:object="${ticketRequest}" method="post" class="ticket-form">
+                    <div class="form-group">
+                        <label for="subject">Subject *</label>
+                        <input type="text" id="subject" th:field="*{subject}" class="form-control"
+                               placeholder="Brief description of the issue" required>
+                        <span class="error-message" th:if="${#fields.hasErrors('subject')}" th:errors="*{subject}">Error</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description *</label>
+                        <textarea id="description" th:field="*{description}" class="form-control" rows="6"
+                                  placeholder="Detailed description of your issue" required></textarea>
+                        <span class="error-message" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Error</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="priority">Priority *</label>
+                            <select id="priority" th:field="*{priority}" class="form-control" required>
+                                <option value="">Select Priority</option>
+                                <option th:each="priority : ${priorities}" th:value="${priority}" th:text="${priority}">
+                                    Priority
+                                </option>
+                            </select>
+                            <span class="error-message" th:if="${#fields.hasErrors('priority')}" th:errors="*{priority}">Error</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="category">Category *</label>
+                            <select id="category" th:field="*{category}" class="form-control" required>
+                                <option value="">Select Category</option>
+                                <option th:each="category : ${categories}" th:value="${category}" th:text="${category}">
+                                    Category
+                                </option>
+                            </select>
+                            <span class="error-message" th:if="${#fields.hasErrors('category')}" th:errors="*{category}">Error</span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="customerName">Your Name *</label>
+                            <input type="text" id="customerName" th:field="*{customerName}" class="form-control"
+                                   placeholder="John Doe" required>
+                            <span class="error-message" th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}">Error</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="customerEmail">Your Email *</label>
+                            <input type="email" id="customerEmail" th:field="*{customerEmail}" class="form-control"
+                                   placeholder="john@example.com" required>
+                            <span class="error-message" th:if="${#fields.hasErrors('customerEmail')}" th:errors="*{customerEmail}">Error</span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">Submit Ticket</button>
+                        <a th:href="@{/}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Service Ticket System - Distributed Helpdesk Demo</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

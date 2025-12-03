@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics - Service Ticket System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a th:href="@{/}">
+                    <span class="brand-icon">🎫</span>
+                    <span class="brand-text">Service Ticket</span>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a th:href="@{/}">Dashboard</a>
+                <a th:href="@{/tickets/queue}">Ticket Queue</a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/tickets/my-tickets}">My Tickets</a>
+                <a th:href="@{/tickets}">All Tickets</a>
+                <a th:href="@{/tickets/stats}" class="active">Statistics</a>
+            </div>
+            <div class="nav-user" sec:authorize="isAuthenticated()">
+                <span class="user-badge" sec:authentication="name">agent</span>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+            <div class="nav-user" sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn-login">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <h1>System Statistics</h1>
+                <p class="subtitle">Comprehensive ticket metrics and performance data</p>
+            </div>
+
+            <div class="stats-section" th:if="${stats != null}">
+                <h2>Overall Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card highlight">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <div class="stat-value" th:text="${stats.totalActive ?: 0}">0</div>
+                            <div class="stat-label">Active Tickets</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-content">
+                            <div class="stat-value" th:text="${stats.totalArchived ?: 0}">0</div>
+                            <div class="stat-label">Archived Tickets</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-section" th:if="${stats != null and stats.byStatus != null}">
+                <h2>By Status</h2>
+                <div class="stats-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="entry : ${stats.byStatus}">
+                                <td>
+                                    <span class="badge" th:text="${entry.key}"
+                                          th:classappend="${'badge-' + #strings.toLowerCase(entry.key)}">Status</span>
+                                </td>
+                                <td><strong th:text="${entry.value}">0</strong></td>
+                                <td>
+                                    <a th:href="@{/tickets(filter='status',value=${entry.key})}" class="btn btn-sm">
+                                        View Tickets
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="stats-section" th:if="${stats != null and stats.byPriority != null}">
+                <h2>By Priority</h2>
+                <div class="stats-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Priority</th>
+                                <th>Count</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="entry : ${stats.byPriority}">
+                                <td>
+                                    <span class="badge" th:text="${entry.key}"
+                                          th:classappend="${'badge-' + #strings.toLowerCase(entry.key)}">Priority</span>
+                                </td>
+                                <td><strong th:text="${entry.value}">0</strong></td>
+                                <td>
+                                    <a th:href="@{/tickets(filter='priority',value=${entry.key})}" class="btn btn-sm">
+                                        View Tickets
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="stats-section" th:if="${stats != null and stats.byCategory != null}">
+                <h2>By Category</h2>
+                <div class="stats-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Count</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="entry : ${stats.byCategory}">
+                                <td>
+                                    <span class="badge" th:text="${entry.key}">Category</span>
+                                </td>
+                                <td><strong th:text="${entry.value}">0</strong></td>
+                                <td>
+                                    <a th:href="@{/tickets(filter='category',value=${entry.key})}" class="btn btn-sm">
+                                        View Tickets
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="stats-section" th:if="${stats != null and stats.byPod != null and not #maps.isEmpty(stats.byPod)}">
+                <h2>By Pod (Workload Distribution)</h2>
+                <div class="stats-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pod Name</th>
+                                <th>Tickets Handled</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="entry : ${stats.byPod}">
+                                <td>
+                                    <span class="badge badge-pod" th:text="${entry.key}">pod-1</span>
+                                </td>
+                                <td><strong th:text="${entry.value}">0</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a th:href="@{/}" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Service Ticket System - Distributed Helpdesk Demo</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

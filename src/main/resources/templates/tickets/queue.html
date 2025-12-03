@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Queue - Service Ticket System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a th:href="@{/}">
+                    <span class="brand-icon">🎫</span>
+                    <span class="brand-text">Service Ticket</span>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a th:href="@{/}">Dashboard</a>
+                <a th:href="@{/tickets/queue}" class="active">Ticket Queue</a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/tickets/my-tickets}">My Tickets</a>
+                <a th:href="@{/tickets}">All Tickets</a>
+                <a th:href="@{/tickets/stats}">Statistics</a>
+            </div>
+            <div class="nav-user" sec:authorize="isAuthenticated()">
+                <span class="user-badge" sec:authentication="name">agent</span>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+            <div class="nav-user" sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn-login">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+            <div class="page-header">
+                <h1>Ticket Queue</h1>
+                <p class="subtitle">Unassigned tickets sorted by priority and age</p>
+            </div>
+
+            <div th:if="${tickets != null and not #lists.isEmpty(tickets)}" class="ticket-list">
+                <div th:each="ticket : ${tickets}" class="ticket-card"
+                     th:classappend="${'priority-' + #strings.toLowerCase(ticket.priority)}">
+                    <div class="ticket-header">
+                        <div class="ticket-number">
+                            <a th:href="@{/tickets/{id}(id=${ticket.id})}" th:text="${ticket.ticketNumber}">TKT-001</a>
+                        </div>
+                        <div class="ticket-badges">
+                            <span class="badge badge-priority" th:text="${ticket.priority}"
+                                  th:classappend="${'badge-' + #strings.toLowerCase(ticket.priority)}">URGENT</span>
+                            <span class="badge badge-category" th:text="${ticket.category}">TECHNICAL</span>
+                            <span class="badge badge-status" th:text="${ticket.status}">NEW</span>
+                        </div>
+                    </div>
+                    <div class="ticket-subject" th:text="${ticket.subject}">Issue with login</div>
+                    <div class="ticket-description" th:text="${#strings.abbreviate(ticket.description, 150)}">
+                        Description text here...
+                    </div>
+                    <div class="ticket-meta">
+                        <span><strong>Customer:</strong> <span th:text="${ticket.customerName}">John Doe</span></span> •
+                        <span><strong>Email:</strong> <span th:text="${ticket.customerEmail}">john@example.com</span></span> •
+                        <span><strong>Created:</strong> <span th:text="${#temporals.format(ticket.createdAt, 'MMM dd, yyyy HH:mm')}">Date</span></span>
+                    </div>
+                    <div class="ticket-actions" sec:authorize="isAuthenticated()">
+                        <form th:action="@{/tickets/{id}/assign(id=${ticket.id})}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-primary">Assign to Me</button>
+                        </form>
+                        <a th:href="@{/tickets/{id}(id=${ticket.id})}" class="btn btn-secondary">View Details</a>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${tickets == null or #lists.isEmpty(tickets)}" class="empty-state">
+                <div class="empty-icon">✓</div>
+                <h2>Queue is Empty</h2>
+                <p>All tickets are currently assigned!</p>
+                <a th:href="@{/}" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Service Ticket System - Distributed Helpdesk Demo</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

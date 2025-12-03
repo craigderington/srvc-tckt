@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Service Ticket System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a th:href="@{/}">
+                    <span class="brand-icon">🎫</span>
+                    <span class="brand-text">Service Ticket</span>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a th:href="@{/}" class="active">Dashboard</a>
+                <a th:href="@{/tickets/queue}">Ticket Queue</a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/tickets/my-tickets}">My Tickets</a>
+                <a th:href="@{/tickets}">All Tickets</a>
+                <a th:href="@{/tickets/stats}">Statistics</a>
+            </div>
+            <div class="nav-user" sec:authorize="isAuthenticated()">
+                <span class="user-badge" sec:authentication="name">agent</span>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+            <div class="nav-user" sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn-login">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+            <div class="dashboard-header">
+                <h1>Support Dashboard</h1>
+                <p class="subtitle">Real-time ticket management and workload distribution</p>
+            </div>
+
+            <div class="stats-grid" th:if="${stats != null}">
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-content">
+                        <div class="stat-value" th:text="${stats.totalActive ?: 0}">0</div>
+                        <div class="stat-label">Active Tickets</div>
+                    </div>
+                </div>
+
+                <div class="stat-card" th:if="${stats.byStatus != null and stats.byStatus['NEW'] != null}">
+                    <div class="stat-icon status-new">🆕</div>
+                    <div class="stat-content">
+                        <div class="stat-value" th:text="${stats.byStatus['NEW'] ?: 0}">0</div>
+                        <div class="stat-label">Unassigned</div>
+                    </div>
+                </div>
+
+                <div class="stat-card" th:if="${stats.byStatus != null and stats.byStatus['IN_PROGRESS'] != null}">
+                    <div class="stat-icon status-in-progress">⚙️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" th:text="${stats.byStatus['IN_PROGRESS'] ?: 0}">0</div>
+                        <div class="stat-label">In Progress</div>
+                    </div>
+                </div>
+
+                <div class="stat-card" th:if="${stats.byStatus != null and stats.byStatus['RESOLVED'] != null}">
+                    <div class="stat-icon status-resolved">✅</div>
+                    <div class="stat-content">
+                        <div class="stat-value" th:text="${stats.byStatus['RESOLVED'] ?: 0}">0</div>
+                        <div class="stat-label">Resolved</div>
+                    </div>
+                </div>
+            </div>
+
+            <div sec:authorize="isAuthenticated()" th:if="${agentStats != null}" class="agent-stats">
+                <h2>My Performance</h2>
+                <div class="stats-grid">
+                    <div class="stat-card highlight">
+                        <div class="stat-icon">👤</div>
+                        <div class="stat-content">
+                            <div class="stat-value" th:text="${agentStats.totalAssigned ?: 0}">0</div>
+                            <div class="stat-label">Assigned to Me</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">✔️</div>
+                        <div class="stat-content">
+                            <div class="stat-value" th:text="${agentStats.resolved ?: 0}">0</div>
+                            <div class="stat-label">Resolved</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-content">
+                            <div class="stat-value" th:text="${#numbers.formatDecimal(agentStats.avgResolutionTimeMinutes ?: 0, 1, 1)} + ' min'">0 min</div>
+                            <div class="stat-label">Avg Resolution Time</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">📍</div>
+                        <div class="stat-content">
+                            <div class="stat-value" th:text="${agentStats.podName}">Pod</div>
+                            <div class="stat-label" th:text="'Node: ' + ${agentStats.nodeName}">Node</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="priority-breakdown" th:if="${stats != null and stats.byPriority != null}">
+                <h2>Priority Breakdown</h2>
+                <div class="priority-stats">
+                    <div class="priority-item priority-urgent">
+                        <span class="priority-label">URGENT</span>
+                        <span class="priority-count" th:text="${stats.byPriority['URGENT'] ?: 0}">0</span>
+                    </div>
+                    <div class="priority-item priority-high">
+                        <span class="priority-label">HIGH</span>
+                        <span class="priority-count" th:text="${stats.byPriority['HIGH'] ?: 0}">0</span>
+                    </div>
+                    <div class="priority-item priority-medium">
+                        <span class="priority-label">MEDIUM</span>
+                        <span class="priority-count" th:text="${stats.byPriority['MEDIUM'] ?: 0}">0</span>
+                    </div>
+                    <div class="priority-item priority-low">
+                        <span class="priority-label">LOW</span>
+                        <span class="priority-count" th:text="${stats.byPriority['LOW'] ?: 0}">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="unassigned-queue">
+                <div class="section-header">
+                    <h2>Unassigned Tickets (Priority Queue)</h2>
+                    <a th:href="@{/tickets/queue}" class="btn btn-secondary">View Full Queue</a>
+                </div>
+
+                <div th:if="${unassignedTickets != null and not #lists.isEmpty(unassignedTickets)}" class="ticket-list">
+                    <div th:each="ticket : ${unassignedTickets}" class="ticket-card"
+                         th:classappend="${'priority-' + #strings.toLowerCase(ticket.priority)}">
+                        <div class="ticket-header">
+                            <div class="ticket-number">
+                                <a th:href="@{/tickets/{id}(id=${ticket.id})}" th:text="${ticket.ticketNumber}">TKT-001</a>
+                            </div>
+                            <div class="ticket-badges">
+                                <span class="badge badge-priority" th:text="${ticket.priority}"
+                                      th:classappend="${'badge-' + #strings.toLowerCase(ticket.priority)}">URGENT</span>
+                                <span class="badge badge-category" th:text="${ticket.category}">TECHNICAL</span>
+                            </div>
+                        </div>
+                        <div class="ticket-subject" th:text="${ticket.subject}">Issue with login</div>
+                        <div class="ticket-meta">
+                            <span th:text="${ticket.customerName}">Customer</span> •
+                            <span th:text="${#temporals.format(ticket.createdAt, 'MMM dd, yyyy HH:mm')}">Date</span>
+                        </div>
+                        <div class="ticket-actions" sec:authorize="isAuthenticated()">
+                            <form th:action="@{/tickets/{id}/assign(id=${ticket.id})}" method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-primary">Assign to Me</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${unassignedTickets == null or #lists.isEmpty(unassignedTickets)}" class="empty-state">
+                    <p>✓ All tickets are currently assigned!</p>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <a th:href="@{/tickets/new}" class="btn btn-primary">Create New Ticket</a>
+                    <a th:href="@{/tickets/queue}" class="btn btn-secondary">View Ticket Queue</a>
+                    <a sec:authorize="isAuthenticated()" th:href="@{/tickets/my-tickets}" class="btn btn-secondary">My Tickets</a>
+                    <a th:href="@{/tickets/stats}" class="btn btn-secondary">View Full Statistics</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Service Ticket System - Distributed Helpdesk Demo</p>
+            <p class="footer-info" th:if="${agentStats != null}">
+                Pod: <strong th:text="${agentStats.podName}">unknown</strong> |
+                Node: <strong th:text="${agentStats.nodeName}">unknown</strong>
+            </p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

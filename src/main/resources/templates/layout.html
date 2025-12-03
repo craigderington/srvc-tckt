@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle : 'Support Ticket System'}">Support Ticket System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a th:href="@{/}">
+                    <span class="brand-icon">🎫</span>
+                    <span class="brand-text">Service Ticket</span>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a th:href="@{/}" th:classappend="${#httpServletRequest.requestURI == '/' ? 'active' : ''}">
+                    Dashboard
+                </a>
+                <a th:href="@{/tickets/queue}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, '/queue') ? 'active' : ''}">
+                    Ticket Queue
+                </a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/tickets/my-tickets}"
+                   th:classappend="${#strings.contains(#httpServletRequest.requestURI, '/my-tickets') ? 'active' : ''}">
+                    My Tickets
+                </a>
+                <a th:href="@{/tickets}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, '/tickets') and not #strings.contains(#httpServletRequest.requestURI, '/queue') and not #strings.contains(#httpServletRequest.requestURI, '/my-tickets') ? 'active' : ''}">
+                    All Tickets
+                </a>
+                <a th:href="@{/tickets/stats}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, '/stats') ? 'active' : ''}">
+                    Statistics
+                </a>
+            </div>
+            <div class="nav-user" sec:authorize="isAuthenticated()">
+                <span class="user-badge" sec:authentication="name">agent1</span>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+            <div class="nav-user" sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn-login">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div th:if="${successMessage}" class="alert alert-success">
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-error">
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <div layout:fragment="content">
+                <!-- Page content goes here -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Service Ticket System - Distributed Helpdesk Demo</p>
+            <p class="footer-info">
+                <span th:if="${agentStats != null}">
+                    Pod: <strong th:text="${agentStats.podName}">unknown</strong> |
+                    Node: <strong th:text="${agentStats.nodeName}">unknown</strong>
+                </span>
+            </p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

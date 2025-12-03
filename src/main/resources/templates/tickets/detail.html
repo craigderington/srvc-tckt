@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${ticket.ticketNumber} + ' - Service Ticket System'">Ticket Details</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a th:href="@{/}">
+                    <span class="brand-icon">🎫</span>
+                    <span class="brand-text">Service Ticket</span>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a th:href="@{/}">Dashboard</a>
+                <a th:href="@{/tickets/queue}">Ticket Queue</a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/tickets/my-tickets}">My Tickets</a>
+                <a th:href="@{/tickets}">All Tickets</a>
+                <a th:href="@{/tickets/stats}">Statistics</a>
+            </div>
+            <div class="nav-user" sec:authorize="isAuthenticated()">
+                <span class="user-badge" sec:authentication="name">agent</span>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+            <div class="nav-user" sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn-login">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+            <div class="ticket-detail" th:classappend="${'priority-' + #strings.toLowerCase(ticket.priority)}">
+                <div class="ticket-detail-header">
+                    <div>
+                        <h1 th:text="${ticket.ticketNumber}">TKT-12345678-1234</h1>
+                        <div class="ticket-badges">
+                            <span class="badge badge-priority badge-lg" th:text="${ticket.priority}"
+                                  th:classappend="${'badge-' + #strings.toLowerCase(ticket.priority)}">URGENT</span>
+                            <span class="badge badge-category badge-lg" th:text="${ticket.category}">TECHNICAL</span>
+                            <span class="badge badge-status badge-lg" th:text="${ticket.status}"
+                                  th:classappend="${'badge-' + #strings.toLowerCase(ticket.status)}">NEW</span>
+                        </div>
+                    </div>
+                    <div class="ticket-actions-header" sec:authorize="isAuthenticated()">
+                        <form th:if="${ticket.status.name() == 'NEW'}"
+                              th:action="@{/tickets/{id}/assign(id=${ticket.id})}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-primary">Assign to Me</button>
+                        </form>
+
+                        <form th:if="${ticket.status.name() == 'ASSIGNED'}"
+                              th:action="@{/tickets/{id}/start(id=${ticket.id})}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-primary">Start Progress</button>
+                        </form>
+
+                        <form th:if="${ticket.status.name() == 'IN_PROGRESS'}"
+                              th:action="@{/tickets/{id}/request-info(id=${ticket.id})}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-warning">Request Info</button>
+                        </form>
+
+                        <form th:if="${ticket.status.name() == 'IN_PROGRESS'}"
+                              th:action="@{/tickets/{id}/resolve(id=${ticket.id})}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-success">Resolve</button>
+                        </form>
+
+                        <form th:if="${ticket.status.name() == 'WAITING_CUSTOMER' || ticket.status.name() == 'RESOLVED'}"
+                              th:action="@{/tickets/{id}/reopen(id=${ticket.id})}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-warning">Reopen</button>
+                        </form>
+
+                        <form th:if="${ticket.status.name() == 'RESOLVED'}"
+                              th:action="@{/tickets/{id}/close(id=${ticket.id})}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-success">Close</button>
+                        </form>
+
+                        <form th:if="${ticket.status.name() == 'CLOSED'}"
+                              th:action="@{/tickets/{id}/archive(id=${ticket.id})}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-secondary">Archive</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="ticket-detail-content">
+                    <div class="detail-section">
+                        <h2 th:text="${ticket.subject}">Ticket Subject</h2>
+                        <p class="ticket-description" th:text="${ticket.description}">Ticket description goes here...</p>
+                    </div>
+
+                    <div class="detail-grid">
+                        <div class="detail-section">
+                            <h3>Customer Information</h3>
+                            <div class="info-row">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value" th:text="${ticket.customerName}">John Doe</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value">
+                                    <a th:href="'mailto:' + ${ticket.customerEmail}" th:text="${ticket.customerEmail}">
+                                        customer@example.com
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h3>Assignment Information</h3>
+                            <div class="info-row">
+                                <span class="info-label">Assigned To:</span>
+                                <span class="info-value" th:text="${ticket.assignedToAgent != null ? ticket.assignedToAgent : 'Unassigned'}">
+                                    Unassigned
+                                </span>
+                            </div>
+                            <div class="info-row" th:if="${ticket.handledByPod != null}">
+                                <span class="info-label">Pod:</span>
+                                <span class="info-value" th:text="${ticket.handledByPod}">pod-1</span>
+                            </div>
+                            <div class="info-row" th:if="${ticket.handledByNode != null}">
+                                <span class="info-label">Node:</span>
+                                <span class="info-value" th:text="${ticket.handledByNode}">node-1</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h3>Timestamps</h3>
+                            <div class="info-row">
+                                <span class="info-label">Created:</span>
+                                <span class="info-value" th:text="${#temporals.format(ticket.createdAt, 'MMM dd, yyyy HH:mm:ss z')}">
+                                    Jan 01, 2024 12:00:00 UTC
+                                </span>
+                            </div>
+                            <div class="info-row" th:if="${ticket.assignedAt != null}">
+                                <span class="info-label">Assigned:</span>
+                                <span class="info-value" th:text="${#temporals.format(ticket.assignedAt, 'MMM dd, yyyy HH:mm:ss z')}">
+                                    Jan 01, 2024 12:00:00 UTC
+                                </span>
+                            </div>
+                            <div class="info-row" th:if="${ticket.resolvedAt != null}">
+                                <span class="info-label">Resolved:</span>
+                                <span class="info-value" th:text="${#temporals.format(ticket.resolvedAt, 'MMM dd, yyyy HH:mm:ss z')}">
+                                    Jan 01, 2024 12:00:00 UTC
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h3>Metrics</h3>
+                            <div class="info-row" th:if="${ticket.assignedAt != null}">
+                                <span class="info-label">Response Time:</span>
+                                <span class="info-value">
+                                    <span th:text="${T(java.time.Duration).between(ticket.createdAt, ticket.assignedAt).toMinutes()} + ' minutes'">
+                                        0 minutes
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="info-row" th:if="${ticket.resolvedAt != null and ticket.assignedAt != null}">
+                                <span class="info-label">Resolution Time:</span>
+                                <span class="info-value">
+                                    <span th:text="${T(java.time.Duration).between(ticket.assignedAt, ticket.resolvedAt).toMinutes()} + ' minutes'">
+                                        0 minutes
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Priority:</span>
+                                <span class="badge" th:text="${ticket.priority}"
+                                      th:classappend="${'badge-' + #strings.toLowerCase(ticket.priority)}">URGENT</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Category:</span>
+                                <span class="badge" th:text="${ticket.category}">TECHNICAL</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section status-flow">
+                        <h3>Status Flow</h3>
+                        <div class="status-timeline">
+                            <div class="status-step" th:classappend="${ticket.status.name() == 'NEW' ? 'active' : 'completed'}">
+                                <span class="status-dot"></span>
+                                <span class="status-text">NEW</span>
+                            </div>
+                            <div class="status-step" th:classappend="${ticket.status.name() == 'ASSIGNED' ? 'active' : (ticket.assignedAt != null ? 'completed' : '')}">
+                                <span class="status-dot"></span>
+                                <span class="status-text">ASSIGNED</span>
+                            </div>
+                            <div class="status-step" th:classappend="${ticket.status.name() == 'IN_PROGRESS' ? 'active' : ''}">
+                                <span class="status-dot"></span>
+                                <span class="status-text">IN PROGRESS</span>
+                            </div>
+                            <div class="status-step" th:classappend="${ticket.status.name() == 'WAITING_CUSTOMER' ? 'active' : ''}">
+                                <span class="status-dot"></span>
+                                <span class="status-text">WAITING CUSTOMER</span>
+                            </div>
+                            <div class="status-step" th:classappend="${ticket.status.name() == 'RESOLVED' ? 'active' : (ticket.resolvedAt != null ? 'completed' : '')}">
+                                <span class="status-dot"></span>
+                                <span class="status-text">RESOLVED</span>
+                            </div>
+                            <div class="status-step" th:classappend="${ticket.status.name() == 'CLOSED' ? 'active' : ''}">
+                                <span class="status-dot"></span>
+                                <span class="status-text">CLOSED</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a th:href="@{/tickets}" class="btn btn-secondary">Back to Tickets</a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/tickets/my-tickets}" class="btn btn-secondary">My Tickets</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Service Ticket System - Distributed Helpdesk Demo</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
